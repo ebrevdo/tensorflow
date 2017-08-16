@@ -1,4 +1,4 @@
-/* Copyright 2015 The TensorFlow Authors. All Rights Reserved.
+/* Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ namespace tensorflow {
 
 template <>
 void* Variant::get() {
+  mutex_lock lock(mu_);
   if (is_empty()) {
     return nullptr;
   }
@@ -31,38 +32,39 @@ void* Variant::get() {
 
 template <>
 const void* Variant::get() const {
+  mutex_lock lock(mu_);
   if (is_empty()) {
     return nullptr;
   }
   return value_->RawPtr();
 }
 
-
 template <>
 string TypeNameVariant(const VariantTensorDataProto& value) {
-    return value.GetTypeName();
+  return value.type_name();
 }
 
 template <>
-void EncodeVariant(const VariantTensorDataProto& value, VariantTensorData* data) {
-    data->FromProto(value);
+void EncodeVariant(const VariantTensorDataProto& value,
+                   VariantTensorData* data) {
+  data->FromProto(value);
 }
 
 template <>
 bool DecodeVariant(const VariantTensorData& data,
-                                      VariantTensorDataProto* value) {
-    data.ToProto(value);
-      return true;
+                   VariantTensorDataProto* value) {
+  data.ToProto(value);
+  return true;
 }
 
 template <>
 void EncodeVariant(const VariantTensorDataProto& value, string* buf) {
-    value.SerializeToString(buf);
+  value.SerializeToString(buf);
 }
 
 template <>
 bool DecodeVariant(const string& buf, VariantTensorDataProto* value) {
-    return value->ParseFromString(buf);
+  return value->ParseFromString(buf);
 }
 
 }  // end namespace tensorflow

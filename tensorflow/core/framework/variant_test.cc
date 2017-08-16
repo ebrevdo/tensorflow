@@ -38,6 +38,15 @@ using Float = Wrapper<float>;
 
 }  // end namespace
 
+TEST(VariantTest, Int) {
+  Variant x;
+  EXPECT_EQ(x.get<void>(), nullptr);
+  x = 3;
+  EXPECT_NE(x.get<void>(), nullptr);
+  EXPECT_EQ(*x.get<int>(), 3);
+  EXPECT_EQ(x.TypeName(), "int");
+}
+
 TEST(VariantTest, Basic) {
   Variant x;
   EXPECT_EQ(x.get<void>(), nullptr);
@@ -176,13 +185,32 @@ TEST(VariantTest, TensorListTest) {
   Variant y = TensorList();
   y.Decode(serialized);
 
-  const TensorList& decoded_vec = *x.get<TensorList>();
+  const TensorList& decoded_vec = *y.get<TensorList>();
   for (int i = 0; i < 4; ++i) {
     EXPECT_EQ(decoded_vec.vec[i].flat<int>()(0), i);
   }
   for (int i = 0; i < 4; ++i) {
     EXPECT_EQ(decoded_vec.vec[i + 4].flat<float>()(0), 2 * i);
   }
+
+  VariantTensorDataProto data;
+  serialized.ToProto(&data);
+  Variant y_unknown = data;
+  EXPECT_EQ(y_unknown.TypeName(), "TensorList");
+  EXPECT_EQ(y_unknown.TypeId(), MakeTypeIndex<VariantTensorDataProto>());
+
+  // Now call a get that internally performs a decode.
+  const TensorList& unknown_decoded_vec = *y_unknown.get<TensorList>();
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(unknown_decoded_vec.vec[i].flat<int>()(0), i);
+  }
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(unknown_decoded_vec.vec[i + 4].flat<float>()(0), 2 * i);
+  }
+
+  // After the get<>() which decoded the DataProto to a TensorList, we
+  // can no longer access the original data proto
+  EXPECT_EQ(y_unknown.TypeId(), MakeTypeIndex<TensorList>());
 }
 
 TEST(VariantTest, VariantArray) {

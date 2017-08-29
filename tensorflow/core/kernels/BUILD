@@ -5948,6 +5948,17 @@ tf_kernel_library(
     ],
 )
 
+tf_kernel_library(
+    name = "tensor_list_ops",
+    srcs = ["tensor_list_ops.cc"],
+    deps = [
+        "//tensorflow/core:framework",
+        "//tensorflow/core:lib",
+        "//tensorflow/core:lib_internal",
+        "//tensorflow/core:variant_ops_op_lib",
+    ],
+)
+
 # -----------------------------------------------------------------------------
 # Google-internal targets.  These must be at the end for syncrepo.
 

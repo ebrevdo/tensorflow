@@ -1322,6 +1322,14 @@ tf_gen_op_wrapper_private_py(
     out = "training/gen_training_ops.py",
 )
 
+tf_gen_op_wrapper_private_py(
+    name = "variant_ops_gen",
+    visibility = [
+        "//tensorflow:__subpackages__",
+        "//tensorflow/python/kernel_tests:__pkg__",
+    ],
+)
+
 py_library(
     name = "array_grad",
     srcs = ["ops/array_grad.py"],

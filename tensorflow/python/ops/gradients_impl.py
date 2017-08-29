@@ -746,6 +746,27 @@ class AggregationMethod(object):
   EXPERIMENTAL_ACCUMULATE_N = 2
 
 
+def _GetVariantType(op):
+  try:
+    variant_type = op.get_attr('variant_type')
+  except ValueError:
+    variant_type = ''
+  return variant_type
+
+
+def _AggregateVariants(grads, aggregration_method=None):
+  variant_type = _GetVariantType(grads[0].op)
+  for g in grads[1:]:
+    if variant_type != _GetVariantType(g.op):
+      raise NotImplementedError('Aggregating different variant types '
+                                'not supported')
+  if variant_type == 'tensorflow::TensorList':
+    return _AggregateTensorList(grads)
+  else:
+    raise NotImplementedError('Aggregating {} type not supported'
+                              .format(variant_type))
+
+
 def _AggregatedGrads(grads, op, loop_state, aggregation_method=None):
   """Get the aggregated gradients for op.
 
@@ -796,8 +817,13 @@ def _AggregatedGrads(grads, op, loop_state, aggregation_method=None):
         out_grads[i] = out_grad[0]
       elif all([isinstance(g, ops.Tensor) for g in out_grad if g is not None]):
         tensor_shape = _AccumulatorShape(out_grad)
-        if (aggregation_method == AggregationMethod.EXPERIMENTAL_ACCUMULATE_N
-            and len(out_grad) > 2 and tensor_shape.is_fully_defined()):
+        valid_grads = [g for g in out_grad if g is not None]
+        all_variants = valid_grads and all([g.dtype == dtypes.variant
+                                            for g in valid_grads])
+        if all_variants:
+          out_grads[i] = _AggregateVariants(valid_grads, aggregation_method)
+        elif (aggregation_method == AggregationMethod.EXPERIMENTAL_ACCUMULATE_N
+              and len(out_grad) > 2 and tensor_shape.is_fully_defined()):
           # The benefit of using AccumulateN is that its inputs can be combined
           # in any order and this can allow the expression to be evaluated with
           # a smaller memory footprint.  When used with gpu_allocator_retry,

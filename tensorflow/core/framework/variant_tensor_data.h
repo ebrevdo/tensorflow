@@ -63,8 +63,9 @@ class VariantTensorData {
   // Tensors contained within objects being serialized.
   int tensors_size();
   const Tensor& tensors(int index) const;
-  std::vector<Tensor> tensors();
+  const std::vector<Tensor>& tensors() const;
   Tensor* add_tensors();
+  void set_tensors(const std::vector<Tensor>& tensors);
 
   // Conversion to and from VariantTensorDataProto
   void ToProto(VariantTensorDataProto* proto) const;

@@ -557,6 +557,7 @@ tf_gen_op_libs(
         "stateless_random_ops",
         "string_ops",
         "training_ops",
+        "variant_ops",
     ],
 )
 
@@ -636,6 +637,7 @@ cc_library(
         ":string_ops_op_lib",
         ":training_ops_op_lib",
         ":user_ops_op_lib",
+        ":variant_ops_op_lib",
         ":word2vec_ops",
     ] + tf_additional_cloud_op_deps(),
     alwayslink = 1,
@@ -766,6 +768,7 @@ cc_library(
         "//tensorflow/core/kernels:state",
         "//tensorflow/core/kernels:stateless_random_ops",
         "//tensorflow/core/kernels:string",
+        "//tensorflow/core/kernels:tensor_list_ops",
         "//tensorflow/core/kernels:training_ops",
         "//tensorflow/core/kernels:word2vec_kernels",
     ] + tf_additional_cloud_kernel_deps() + if_not_windows([

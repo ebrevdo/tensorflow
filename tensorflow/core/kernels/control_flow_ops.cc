@@ -74,6 +74,19 @@ TF_CALL_QUANTIZED_TYPES(REGISTER_CPU_SWITCH);
 TF_CALL_NUMBER_TYPES_NO_INT32(REGISTER_GPU_SWITCH);
 TF_CALL_NUMBER_TYPES_NO_INT32(REGISTER_GPU_REF_SWITCH);
 
+REGISTER_KERNEL_BUILDER(
+    Name("Switch").Device(DEVICE_CPU).TypeConstraint("T", DT_VARIANT),
+    SwitchOp);
+
+REGISTER_KERNEL_BUILDER(Name("Switch")
+                            .Device(DEVICE_GPU)
+                            .TypeConstraint("T", DT_VARIANT)
+                            .HostMemory("data")
+                            .HostMemory("pred")
+                            .HostMemory("output_false")
+                            .HostMemory("output_true"),
+                        SwitchOp);
+
 #undef REGISTER_CPU_SWITCH
 #undef REGISTER_CPU_REF_SWITCH
 #undef REGISTER_GPU_SWITCH
